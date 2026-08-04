@@ -1,0 +1,19 @@
+# Virtual environments
+venv/
+venv311/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# VS Code settings
+.vscode/
+
+# Generated project data
+dataset/
+keypoints/
+
+# Trained models
+models/
+*.h5
+*.keras
