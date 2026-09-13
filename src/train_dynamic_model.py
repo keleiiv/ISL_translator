@@ -5,7 +5,7 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
-DATA_DIR = Path("keypoints/isl_video")
+DATA_DIR = Path("keypoints/isl_video_expanded")
 MODEL_DIR = Path("models")
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -72,8 +72,8 @@ model.fit(
 
 test_loss, test_accuracy = model.evaluate(X_test, y_test, verbose=0)
 
-model_path = MODEL_DIR / "dynamic_8words.keras"
-labels_path = MODEL_DIR / "dynamic_8words_labels.json"
+model_path = MODEL_DIR / "dynamic_8words_expanded.keras"
+labels_path = MODEL_DIR / "dynamic_8words_expanded_labels.json"
 
 model.save(model_path)
 with labels_path.open("w", encoding="utf-8") as f:

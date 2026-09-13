@@ -13,8 +13,8 @@ from config import KEYPOINTS_DIR, ROOT_DIR, SEQUENCE_LENGTH
 
 
 VIDEO_CLASSES = ("eat", "go", "hello", "help", "no", "please", "water", "yes")
-VIDEO_DIR = ROOT_DIR / "dataset" / "isl_video"
-OUTPUT_DIR = KEYPOINTS_DIR / "isl_video"
+VIDEO_DIR = ROOT_DIR / "dataset" / "isl_video_expanded"
+OUTPUT_DIR = KEYPOINTS_DIR / "isl_video_expanded"
 HAND_SHAPE = (21, 3)
 
 

@@ -10,10 +10,11 @@ import tensorflow as tf
 from preprocess_video_dataset import extract_frame_landmarks
 
 
-MODEL_PATH = Path("models/dynamic_8words.keras")
-LABELS_PATH = Path("models/dynamic_8words_labels.json")
+MODEL_PATH = Path("models/dynamic_8words_expanded.keras")
+LABELS_PATH = Path("models/dynamic_8words_expanded_labels.json")
 
 SEQUENCE_LENGTH = 30
+BUFFER_LENGTH = 90
 
 model = tf.keras.models.load_model(MODEL_PATH)
 
@@ -23,7 +24,9 @@ with LABELS_PATH.open("r", encoding="utf-8") as f:
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 
-sequence = deque(maxlen=SEQUENCE_LENGTH)
+# Keep a longer webcam buffer so we can sample frames
+# in a way that is closer to the training preprocessing.
+frame_buffer = deque(maxlen=BUFFER_LENGTH)
 
 with mp_hands.Hands(
     static_image_mode=False,
@@ -51,19 +54,37 @@ with mp_hands.Hands(
             print("Could not read webcam frame.")
             break
 
+        # Mirror the webcam for a natural selfie view.
+        frame = cv2.flip(frame, 1)
+
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = hands.process(rgb)
 
-        # IMPORTANT:
-        # This is the exact same preprocessing used during training.
         landmarks = extract_frame_landmarks(results)
-        sequence.append(landmarks)
+        frame_buffer.append(landmarks)
 
-        if len(sequence) == SEQUENCE_LENGTH:
-            input_data = np.asarray(sequence, dtype=np.float32)
-            input_data = input_data.reshape(1, 30, 126)
+        if len(frame_buffer) == BUFFER_LENGTH:
 
-            probabilities = model.predict(input_data, verbose=0)[0]
+            # Sample 30 evenly spaced frames from the 90-frame buffer.
+            indices = np.linspace(
+                0,
+                BUFFER_LENGTH - 1,
+                SEQUENCE_LENGTH,
+                dtype=int,
+            )
+
+            sampled_sequence = np.asarray(
+                [frame_buffer[i] for i in indices],
+                dtype=np.float32,
+            )
+
+            input_data = sampled_sequence.reshape(1, 30, 126)
+
+            probabilities = model.predict(
+                input_data,
+                verbose=0,
+            )[0]
+
             index = int(np.argmax(probabilities))
 
             prediction = labels[index]
